@@ -38,6 +38,7 @@ now = datetime.datetime.now()
 def start_recording():
 	recording_button.when_pressed = None
 	recording_led.on()
+
 	# TODO Start Recording
 
 	sleep(0.15)
@@ -54,19 +55,29 @@ def start_recording():
 			if recording_button.is_pressed:
 				end_recording()
 				break
+	return
 
 def end_recording(start=None):
 	recording_led.off()
+
 	# TODO End Recording
 
 	if args.debug:
 		end = time()
 		recording_length = end-start
-		print(f'Recording Stopped!\nLength: {recording_length}s')
+		print(f'Recording Stopped!\nLength: {round(recording_length, 2)}s')
 
 	recording_button.when_pressed = start_recording
 
 	return
+
+# TODO Functionality to pause current recording and return to recording context
+def pause_recording():
+	pass
+
+# TODO Functionality to enter edit mode and enter new context
+def edit_mode():
+	pass
 
 print(f'IdeaBox v{IDEABOX_VERSION} Listening... {now}')
 if args.debug:
