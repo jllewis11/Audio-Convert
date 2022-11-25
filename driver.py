@@ -1,19 +1,21 @@
-from gpiozero import LED, Button
+from gpiozero import LED, LEDBarGraph, Button
 from time import time, sleep
 from signal import pause
 import sys
 import datetime
 import argparse
+import os
+import random
 
 # LED PIN CONSTSANTS
 LED_CONSTANTS = {
-	"POWER_PIN": None,
-	"REC_PIN": 17,
-	"WARNING_PIN": None,
+	"POWER_PIN": 10,
+	"REC_PIN": 9,
+	"CAUTION_PIN": 11,
 	"HAT_PIN": None,
-	"SLOT1_PIN": None,
-	"SLOT2_PIN": None,
-	"SLOT3_PIN": None
+	"LED1_PIN": 17,
+	"LED2_PIN": 27,
+	"LED3_PIN": 22
 }
 # BUTTON PIN CONSTANTS
 BUTTON_CONSTANTS = {
@@ -31,71 +33,104 @@ parser.add_argument('-d', '--debug', dest='debug', help='prints debug informatio
 parser.add_argument('-v', '--version', action='version', version=f'IdeaBox %(prog)s {IDEABOX_VERSION}')
 args = parser.parse_args()
 
-power_led = LED(LED_CONSTANTS['POWER_PIN'])
 recording_led = LED(LED_CONSTANTS['REC_PIN'])
-warning_led = LED(LED_CONSTANTS['WARNING_PIN'])
-hat_led = LED(LED_CONSTANTS['HAT_PIN'])
-slot1_led = LED(LED_CONSTANTS['SLOT1_PIN'])
-slot2_led = LED(LED_CONSTANTS['SLOT2_PIN'])
-slot3_led = LED(LED_CONSTANTS['SLOT3_PIN'])
-
-power_button = Button(BUTTON_CONSTANTS['POWER_PIN'])
+power_led = LED(LED_CONSTANTS['POWER_PIN'])
+caution_led = LED(LED_CONSTANTS['CAUTION_PIN'])
 recording_button = Button(BUTTON_CONSTANTS['REC_PIN'])
-pause_button = Button(BUTTON_CONSTANTS['PAUSE_PIN'])
-mode_button = Button(BUTTON_CONSTANTS['MODE_PIN'])
-
+graph_leds = LEDBarGraph(LED_CONSTANTS['LED1_PIN'], LED_CONSTANTS['LED2_PIN'], LED_CONSTANTS['LED3_PIN'], pwm = True)
 now = datetime.datetime.now()
 
-def recording():
+def start_recording():
 	recording_button.when_pressed = None
-	recording_button.wait_for_release()
-
 	recording_led.on()
 
 	# TODO Start Recording
 
-	sleep(0.15)
+	# Need to sleep to let user unpress button or else will fall into end_recording instantly
+	sleep(0.25)
 
 	if args.debug:
-		print('Device is recording...')
+		print('Device is recording... ')
 		start = time()
+		while True:
+			if recording_button.is_pressed:
+				end_recording(start)
+				break
+	else:
+		while True:
+			if recording_button.is_pressed:
+				end_recording()
+				break
 
-	recording_button.hold_time = 3
-	if recording_button.is_held:
-		if args.debug:
-			print('Recording paused~')
+	return
 
-	recording_button.wait_for_release()
-
+def end_recording(start=None):
 	recording_led.off()
+
+	# TODO End Recording
 
 	if args.debug:
 		end = time()
-		recording_time = end-start
-		print(f'Recording complete! {round(recording_time, 2)}s')
+		recording_length = end-start
+		print(f'Recording Stopped!\nLength: {round(recording_length, 2)}s')
 
-	# TODO End recording
+	recording_button.when_pressed = start_recording
 
-	listen()
+	# Debug functionality to make a file in /recordings to test update_graph()
+	randnum = random.random()
+	fp = open(f'/home/pi/Documents/CPSC-440-Project/recordings/recording-{randnum}', 'w')
+	fp.close()
+	# End Debug
 
-# TODO Functionality to pause current recording and return to recording context
-def pause_recording():
-	pass
+	update_graph(check_files())
 
-# TODO Functionality to enter edit mode and enter new context
-def edit_mode():
-	pass
+	return
 
-# TODO Functionality to make driver wait in listen context, waiting for recording or mode switch
-def listen():
-	recording_button.when_pressed = recording
+def led_startup_sequence():
+	recording_led.on()
+	sleep(0.2)
+	caution_led.on()
+	sleep(0.2)
+	for i in range(100):
+		graph_leds.value = i/100
+		sleep(0.005)
+	sleep(0.5)
+	recording_led.off()
+	caution_led.off()
+	graph_leds.off()
 
-	pause()
+	return
 
-print(f'IdeaBox v{IDEABOX_VERSION} Listening... {now}')
+def check_files():
+	count = 0
+	dir_path = '/home/pi/Documents/CPSC-440-Project/recordings'
+	for path in os.scandir(dir_path):
+		if path.is_file():
+			count += 1
+
+	if args.debug:
+		print(f'{count} files in dir {dir_path}')
+
+	return count
+
+def update_graph(count):
+	graph_leds.value = count/20
+
+	return
+
+print(f'IdeaBox v{IDEABOX_VERSION} Listening {now}')
+power_led.on()
+
+led_startup_sequence()
+sleep(1)
+
+update_graph(check_files())
+
 if args.debug:
-	print('Debug information printing...')
+	print('Debug information printing')
 	print(f'LED PINS: {LED_CONSTANTS}')
 	print(f'BUTTON PINS: {BUTTON_CONSTANTS}')
 
-listen()
+recording_button.when_pressed = start_recording
+
+pause()
