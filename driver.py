@@ -7,6 +7,15 @@ import argparse
 import os
 import random
 
+#Recording library
+import sounddevice as sd
+from scipy.io.wavfile import write
+import whisper
+from pydub import AudioSegment
+import queue
+import tempfile
+import soundfile as sf
+
 # LED PIN CONSTSANTS
 LED_CONSTANTS = {
 	"POWER_PIN": 10,
@@ -40,12 +49,42 @@ recording_button = Button(BUTTON_CONSTANTS['REC_PIN'])
 graph_leds = LEDBarGraph(LED_CONSTANTS['LED1_PIN'], LED_CONSTANTS['LED2_PIN'], LED_CONSTANTS['LED3_PIN'], pwm = True)
 now = datetime.datetime.now()
 
+q = queue.Queue()
+filename = None
+
+def callback(indata, frames, time, status):
+    """This is called (from a separate thread) for each audio block."""
+    if status:
+        print(status, file=sys.stderr)
+    q.put(indata.copy())
+
 def start_recording():
 	recording_button.when_pressed = None
 	recording_led.on()
 
-	# TODO Start Recording
+	device_info = sd.query_devices(kind='input')
+    # soundfile expects an int, sounddevice provides a float:
+	samplerate = int(device_info['default_samplerate'])
+    
+	filename = tempfile.mktemp(prefix='recording-',
+                                        suffix='.wav', dir='')
 
+    # Make sure the file is opened before recording anything:
+	print("Starting....")
+
+	with sf.SoundFile(filename, mode='x', samplerate=samplerate,
+						channels=1) as file:
+		with sd.InputStream(samplerate=samplerate,
+								channels=1, callback=callback):
+			print('#' * 80)
+			print('press Ctrl+C to stop the recording')
+			print('#' * 80)
+			while recording_button.is_pressed:
+				file.write(q.get())
+	
+	print('\nRecording finished: ' + repr(filename))
+	print("-----Finished Recording-----")
+	sd.wait(0)
 	# Need to sleep to let user unpress button or else will fall into end_recording instantly
 	sleep(0.25)
 
@@ -67,7 +106,20 @@ def start_recording():
 def end_recording(start=None):
 	recording_led.off()
 
-	# TODO End Recording
+	sounds = AudioSegment.from_wav(filename)
+	sounds.export("output.mp3", format="mp3")
+
+	print("-----Converting Audio-----")
+
+	model = whisper.load_model('base')
+	######TODO change file name if needed
+	result = model.transcribe('output.mp3')
+	print(result)
+
+	#Write the result to a text file
+	######TODO change file name if needed
+	with open('result.txt', 'w') as f:
+		f.write(result["text"])
 
 	if args.debug:
 		end = time()
