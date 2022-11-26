@@ -20,7 +20,7 @@ try:
     
     device_info = sd.query_devices(kind='input')
         # soundfile expects an int, sounddevice provides a float:
-    samplerate = int(device_info['default_samplerate'])
+    samplerate = int(16000)
     
     filename = tempfile.mktemp(prefix='delme_rec_unlimited_',
                                         suffix='.wav', dir='')
