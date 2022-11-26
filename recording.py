@@ -1,11 +1,13 @@
 import sounddevice as sd
 from scipy.io.wavfile import write
 import whisper
+import subprocess
 from pydub import AudioSegment
 import queue
 import tempfile
 import sys
 import soundfile as sf
+import os
 
 
 q = queue.Queue()
@@ -22,7 +24,7 @@ try:
         # soundfile expects an int, sounddevice provides a float:
     samplerate = int(16000)
     
-    filename = tempfile.mktemp(prefix='delme_rec_unlimited_',
+    filename = tempfile.mktemp(prefix='recording_',
                                         suffix='.wav', dir='')
 
     # Make sure the file is opened before recording anything:
@@ -47,16 +49,25 @@ sd.wait()
 
 print("-----Finished Recording-----")
 
-sounds = AudioSegment.from_wav(filename)
-sounds.export("output.mp3", format="mp3")
+#sounds = AudioSegment.from_wav(filename)
+#sounds.export("output.mp3", format="mp3")
 
 print("-----Converting Audio-----")
 
-model = whisper.load_model('base')
-result = model.transcribe(filename)
-print(result)
+isCPP = True
+if isCPP:
+    subprocess.run("cd whisper.cpp && ./main -nt -otxt -f " + filename, shell=True)
+
+else:
+
+    model = whisper.load_model('base')
+    result = model.transcribe(filename)
+    print(result)
 
 #Write the result to a text file
+    with open('result.txt', 'w') as f:
+        f.write(result["text"])
 
-with open('result.txt', 'w') as f:
-    f.write(result["text"])
+
+#Execute the whisper cpp program
+

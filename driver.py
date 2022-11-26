@@ -9,7 +9,7 @@ import random
 
 #Recording library
 import sounddevice as sd
-import whisper
+import subprocess
 import queue
 import tempfile
 import soundfile as sf
@@ -62,7 +62,8 @@ def start_recording():
 
 	device_info = sd.query_devices(kind='input')
     # soundfile expects an int, sounddevice provides a float:
-	samplerate = int(device_info['default_samplerate'])
+	#16KHz sampling rate is only accepted in the whisper.cpp program
+	samplerate = int(16000)
     
 	filename = tempfile.mktemp(prefix='recording-',
                                         suffix='.wav', dir='')
@@ -104,14 +105,7 @@ def start_recording():
 def end_recording(start=None):
 	recording_led.off()
 
-	model = whisper.load_model('base')
-	result = model.transcribe(filename)
-	print(result)
-
-	#Write the result to a text file
-	######TODO change file name if needed
-	with open('result.txt', 'w') as f:
-		f.write(result["text"])
+	subprocess.run("cd whisper.cpp && ./main -nt -otxt -f " + filename, shell=True)
 
 	if args.debug:
 		end = time()
