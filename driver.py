@@ -10,7 +10,6 @@ import random
 #Recording library
 import sounddevice as sd
 import whisper
-from pydub import AudioSegment
 import queue
 import tempfile
 import soundfile as sf
