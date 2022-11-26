@@ -53,7 +53,7 @@ sounds.export("output.mp3", format="mp3")
 print("-----Converting Audio-----")
 
 model = whisper.load_model('base')
-result = model.transcribe('output.mp3')
+result = model.transcribe(filename)
 print(result)
 
 #Write the result to a text file

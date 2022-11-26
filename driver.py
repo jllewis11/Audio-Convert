@@ -9,7 +9,6 @@ import random
 
 #Recording library
 import sounddevice as sd
-from scipy.io.wavfile import write
 import whisper
 from pydub import AudioSegment
 import queue
@@ -77,7 +76,7 @@ def start_recording():
 		with sd.InputStream(samplerate=samplerate,
 								channels=1, callback=callback):
 			print('#' * 80)
-			print('press Ctrl+C to stop the recording')
+			print('Recording...')
 			print('#' * 80)
 			while recording_button.is_pressed:
 				file.write(q.get())
@@ -106,14 +105,8 @@ def start_recording():
 def end_recording(start=None):
 	recording_led.off()
 
-	sounds = AudioSegment.from_wav(filename)
-	sounds.export("output.mp3", format="mp3")
-
-	print("-----Converting Audio-----")
-
 	model = whisper.load_model('base')
-	######TODO change file name if needed
-	result = model.transcribe('output.mp3')
+	result = model.transcribe(filename)
 	print(result)
 
 	#Write the result to a text file
