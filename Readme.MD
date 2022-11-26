@@ -13,6 +13,10 @@ To download all Python library modules:
 To install libav please see this page for general requrements and platform specific installation instructions:
 https://wiki.libav.org/Platform
 
+You might also need to install ffmpeg which is a open-source command-line tool for transcoding multimedia files.
+```sudo apt install ffmpeg```
+
+
 ## Getting Started
 1. Run ```python main.py```
 2. Wait for recording before speaking
