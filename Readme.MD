@@ -1,6 +1,6 @@
 # Audio to Text Conversion
 CPSC 440 - Computer Systems Architecture <br>
-Jerry Liu - Sean Del Castillo
+Jerry Liu, Sean Del Castillo
 
 
 ## Introduction
@@ -10,15 +10,64 @@ This program listens to a microphone device and converts the file from a WAV to 
 To download all Python library modules:
 ```pip install -r requirements.txt```
 
+The sounddevice library needs PortAudio:
+```sudo apt install libportaudio2```
+
 To install libav please see this page for general requrements and platform specific installation instructions:
 https://wiki.libav.org/Platform
 
 You might also need to install ffmpeg which is a open-source command-line tool for transcoding multimedia files.
 ```sudo apt install ffmpeg```
 
-
 ## Getting Started
-1. Run ```python main.py```
-2. Wait for recording before speaking
-3. The recording will be 3 seconds before it stop and starts to convert. 
-4. The results will be printed in a results.txt file
+1. Start driver.py
+```python3 driver.py```
+2. Press and hold the recording_button to record
+3. Release the button to start the transcription process
+4. Recording .wavs are stored in /recordings and matching transcriptions are stored in /transcripts
+
+## LED Legend
+[ ] Unlit [*] Blinking [X] Lit
+     [ ] <- Recording LED
+     [ ] <- Caution LED
+     [ ] <- Graph LEDs
+     [ ] <-/ /
+     [ ] <--/
+     [ ] <- Power LED
+
+## LED Reporting
+1. Listening
+     [ ] <- Recording LED
+     [ ] <- Caution LED
+     [ ] <- Graph LEDs
+     [ ] <-/ /
+     [ ] <--/
+     [X] <- Power LED
+
+2. Recording
+     [X] <- Recording LED
+     [ ] <- Caution LED
+     [ ] <- Graph LEDs
+     [ ] <-/ /
+     [ ] <--/
+     [X] <- Power LED
+
+3. Transcribing
+     [*] <- Recording LED
+     [*] <- Caution LED
+     [ ] <- Graph LEDs
+     [ ] <-/ /
+     [ ] <--/
+     [ ] <- Power LED
+
+4. Graph LED states
+     [ ] <- Recording LED
+     [X] <- Caution LED
+     [X] <- Graph LEDs
+     [X] <-/ /
+     [X] <--/
+     [ ] <- Power LED
+  - The three Graph LEDs are pulse wave modulated to 20 maximum values. They track 
+    how many recordings are in /recordings. If all three LEDs and Caution are lit
+    then that means the maximum amount of files are being tracked by the graph 
+    LEDs. Recording and transcribing are unaffected by this max value.

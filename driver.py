@@ -6,6 +6,7 @@ import datetime
 import argparse
 import os
 import random
+import numpy
 
 #Recording library
 import sounddevice as sd
@@ -33,7 +34,7 @@ BUTTON_CONSTANTS = {
 }
 
 HOLD_TIME = 3
-IDEABOX_VERSION = '0.2 Alpha'
+IDEABOX_VERSION = '1.0 Release'
 
 parser = argparse.ArgumentParser(description='Starts the IdeaBox Listener.')
 parser.add_argument('-d', '--debug', dest='debug', help='prints debug information', action='store_true')
@@ -57,72 +58,46 @@ def callback(indata, frames, time, status):
     q.put(indata.copy())
 
 def start_recording():
-	recording_button.when_pressed = None
 	recording_led.on()
 
 	device_info = sd.query_devices(kind='input')
     # soundfile expects an int, sounddevice provides a float:
 	#16KHz sampling rate is only accepted in the whisper.cpp program
 	samplerate = int(16000)
-    
-	filename = tempfile.mktemp(prefix='recording-',
-                                        suffix='.wav', dir='')
+
+	filename = tempfile.mktemp(prefix='recording-', suffix='.wav', dir='')
 
     # Make sure the file is opened before recording anything:
-	print("Starting....")
-
-	with sf.SoundFile(filename, mode='x', samplerate=samplerate,
-						channels=1) as file:
-		with sd.InputStream(samplerate=samplerate,
-								channels=1, callback=callback):
-			print('#' * 80)
+	with sf.SoundFile(filename, mode='x', samplerate=samplerate, channels=1) as file:
+		with sd.InputStream(samplerate=samplerate, channels=1, callback=callback):
 			print('Recording...')
-			print('#' * 80)
 			while recording_button.is_pressed:
 				file.write(q.get())
-	
+
 	print('\nRecording finished: ' + repr(filename))
-	print("-----Finished Recording-----")
 	sd.wait(0)
-	# Need to sleep to let user unpress button or else will fall into end_recording instantly
-	sleep(0.25)
 
-	if args.debug:
-		print('Device is recording... ')
-		start = time()
-		while True:
-			if recording_button.is_pressed:
-				end_recording(start)
-				break
-	else:
-		while True:
-			if recording_button.is_pressed:
-				end_recording()
-				break
+	power_led.off()
+	recording_led.blink()
+	caution_led.blink()
 
-	return
-
-def end_recording(start=None):
+	subprocess.run("./whisper.cpp/main -m ./whisper.cpp/models/ggml-base.en.bin -nt -otxt -f " + filename, shell=True)
+	print('Transcription done.')
 	recording_led.off()
+	caution_led.off()
+	sleep(0.25)
+	led_startup_sequence()
 
-	subprocess.run("cd whisper.cpp && ./main -nt -otxt -f " + filename, shell=True)
+	# move recording to subdir
+	subprocess.run('mv recording-*.wav ./recordings', shell=True)
 
-	if args.debug:
-		end = time()
-		recording_length = end-start
-		print(f'Recording Stopped!\nLength: {round(recording_length, 2)}s')
-
-	recording_button.when_pressed = start_recording
-
-	# Debug functionality to make a file in /recordings to test update_graph()
-	randnum = random.random()
-	fp = open(f'/home/pi/Documents/CPSC-440-Project/recordings/recording-{randnum}', 'w')
-	fp.close()
-	# End Debug
+	# move transcript to subdir
+	subprocess.run('mv recording-*.wav.txt ./transcripts', shell=True)
 
 	update_graph(check_files())
+	power_led.on()
 
-	return
+	listen()
 
 def led_startup_sequence():
 	recording_led.on()
@@ -132,7 +107,7 @@ def led_startup_sequence():
 	for i in range(100):
 		graph_leds.value = i/100
 		sleep(0.005)
-	sleep(0.5)
+	sleep(1)
 	recording_led.off()
 	caution_led.off()
 	graph_leds.off()
@@ -141,7 +116,7 @@ def led_startup_sequence():
 
 def check_files():
 	count = 0
-	dir_path = '/home/pi/Documents/CPSC-440-Project/recordings'
+	dir_path = '/home/pi/cpsc440-project-ideabox/recordings'
 	for path in os.scandir(dir_path):
 		if path.is_file():
 			count += 1
@@ -152,23 +127,40 @@ def check_files():
 	return count
 
 def update_graph(count):
-	graph_leds.value = count/20
+	if count > 20:
+		graph_leds.value = 20/20
+		caution_led.on()
+	else:
+		caution_led.off()
+		graph_leds.value = count/20
 
 	return
 
-print(f'IdeaBox v{IDEABOX_VERSION} Listening {now}')
-power_led.on()
+def input_init():
+	print(f'IdeaBox v{IDEABOX_VERSION} {now}')
+	power_led.on()
 
-led_startup_sequence()
-sleep(1)
+	led_startup_sequence()
+	sleep(0.5)
 
-update_graph(check_files())
+	update_graph(check_files())
 
-if args.debug:
-	print('Debug information printing')
-	print(f'LED PINS: {LED_CONSTANTS}')
-	print(f'BUTTON PINS: {BUTTON_CONSTANTS}')
+	if args.debug:
+		print('Debug information printing')
+		print(f'LED PINS: {LED_CONSTANTS}')
+		print(f'BUTTON PINS: {BUTTON_CONSTANTS}')
 
-recording_button.when_pressed = start_recording
+	return
 
-pause()
+def listen():
+	print('Listening...')
+	try:
+		while True:
+			if recording_button.is_pressed:
+				start_recording()
+	except KeyboardInterrupt:
+		led_startup_sequence()
+		print('\nQuitting Ideabox.')
+		quit()
+input_init()
+listen()
