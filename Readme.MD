@@ -9,11 +9,11 @@ This program listens to a microphone device, writes to wav, then utilizes OpenAI
 ## Hardware Prerequisite
 The hardware driver depends on the GPIOZero library (https://github.com/gpiozero/gpiozero). Hardware must support this library and have at least 11 GPIO pins. 
 
-## Installation
+## Installation and Setup
 To download all Python library modules:
 ```pip install -r requirements.txt```
 
-The sounddevice library needs PortAudio:
+The sounddevice library needs PortAudio which isn't bundled in on Linux:
 ```sudo apt install libportaudio2```
 
 To install libav please see this page for general requrements and platform specific installation instructions:
@@ -21,6 +21,8 @@ https://wiki.libav.org/Platform
 
 You might also need to install ffmpeg which is a open-source command-line tool for transcoding multimedia files.
 ```sudo apt install ffmpeg```
+
+Make sure to create two subdirectories ./recordings, ./transcriptions to store file outputs.
 
 ## Getting Started
 1. Start driver.py
