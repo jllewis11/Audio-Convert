@@ -4,7 +4,7 @@ Jerry Liu, Sean Del Castillo
 
 
 ## Introduction
-This program listens to a microphone device and converts the file from a WAV to MP3. Then, the program will utilize OpenAI Whisper to convert the audio to text.
+This program listens to a microphone device, writes to wav, then utilizes OpenAI Whisper to convert the audio to text.
 
 ## Hardware Prerequisite
 The hardware driver depends on the GPIOZero library (https://github.com/gpiozero/gpiozero). Hardware must support this library and have at least 11 GPIO pins. 
