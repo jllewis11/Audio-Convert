@@ -27,6 +27,7 @@ You might also need to install ffmpeg which is a open-source command-line tool f
 4. Recording .wavs are stored in /recordings and matching transcriptions are stored in /transcripts
 
 ## LED Legend
+'''
 [ ] Unlit [*] Blinking [X] Lit
      [ ] <- Recording LED
      [ ] <- Caution LED
@@ -34,39 +35,48 @@ You might also need to install ffmpeg which is a open-source command-line tool f
      [ ] <-/ /
      [ ] <--/
      [ ] <- Power LED
+'''
 
 ## LED Reporting
 1. Listening
+'''
      [ ] <- Recording LED
      [ ] <- Caution LED
      [ ] <- Graph LEDs
      [ ] <-/ /
      [ ] <--/
      [X] <- Power LED
+'''
 
 2. Recording
+'''
      [X] <- Recording LED
      [ ] <- Caution LED
      [ ] <- Graph LEDs
      [ ] <-/ /
      [ ] <--/
      [X] <- Power LED
+'''
 
 3. Transcribing
+'''
      [*] <- Recording LED
      [*] <- Caution LED
      [ ] <- Graph LEDs
      [ ] <-/ /
      [ ] <--/
      [ ] <- Power LED
+'''
 
 4. Graph LED states
+'''
      [ ] <- Recording LED
      [X] <- Caution LED
      [X] <- Graph LEDs
      [X] <-/ /
      [X] <--/
      [ ] <- Power LED
+'''
   - The three Graph LEDs are pulse wave modulated to 20 maximum values. They track 
     how many recordings are in /recordings. If all three LEDs and Caution are lit
     then that means the maximum amount of files are being tracked by the graph 
