@@ -6,6 +6,8 @@ Jerry Liu, Sean Del Castillo
 ## Introduction
 This program listens to a microphone device, writes to wav, then utilizes OpenAI Whisper to convert the audio to text.
 
+OpenAI Whisper is an automated speech recognition (ASR) system that was trained using 680,000 hours of supervised web-based multilingual and multitask data. In using a dataset of size and variety increases resilience against accents, background noise, and technical terminology. Additionally, it permits both translation into English from several languages as well as transcription in those languages. 
+
 ## Hardware Prerequisite
 The hardware driver depends on the GPIOZero library (https://github.com/gpiozero/gpiozero). Hardware must support this library and have at least 11 GPIO pins. 
 
@@ -87,3 +89,7 @@ Make sure to create two subdirectories ./recordings, ./transcriptions to store f
     how many recordings are in /recordings. If all three LEDs are fully lit and 
     Caution is lit then that means the maximum amount of files are being tracked by 
     the graph LEDs. Recording and transcribing are unaffected by this max value.
+
+##References
+- https://cdn.openai.com/papers/whisper.pdf
+- https://github.com/ggerganov/whisper.cpp
