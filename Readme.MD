@@ -6,7 +6,10 @@ Jerry Liu, Sean Del Castillo
 ## Introduction
 This program listens to a microphone device, writes to wav, then utilizes OpenAI Whisper to convert the audio to text.
 
-OpenAI Whisper is an automated speech recognition (ASR) system that was trained using 680,000 hours of supervised web-based multilingual and multitask data. In using a dataset of size and variety increases resilience against accents, background noise, and technical terminology. Additionally, it permits both translation into English from several languages as well as transcription in those languages. 
+OpenAI Whisper is an automated speech recognition (ASR) system that was trained using 680,000 hours of supervised web-based multilingual and multitask data. In using a dataset of size and variety increases resilience against accents, background noise, and technical terminology. Additionally, it permits both translation into English from several languages as well as transcription in those languages.
+
+The Whisper module converted to C++ is included in this repo under the MIT license. The inference was written by Georgi Gerganov and the repo can be found here:
+https://github.com/ggerganov/whisper.cpp
 
 ## Hardware Prerequisite
 The hardware driver depends on the GPIOZero library (https://github.com/gpiozero/gpiozero). Hardware must support this library and have at least 11 GPIO pins. 
