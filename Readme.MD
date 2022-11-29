@@ -90,6 +90,6 @@ Make sure to create two subdirectories ./recordings, ./transcriptions to store f
     Caution is lit then that means the maximum amount of files are being tracked by 
     the graph LEDs. Recording and transcribing are unaffected by this max value.
 
-##References
+## References
 - https://cdn.openai.com/papers/whisper.pdf
 - https://github.com/ggerganov/whisper.cpp
